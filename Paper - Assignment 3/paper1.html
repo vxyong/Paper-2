@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Movement with Mouse Drag and Gradient</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.11/paper-full.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: black;
+        }
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<canvas id="myCanvas" resize></canvas>
+<script type="text/paperscript" canvas="myCanvas">
+    var circle = new Path.Circle({
+        center: view.center,
+        radius: 50
+    });
+    circle.fillColor = {
+        gradient: {
+            stops: [['black', 0], ['red', 0.5], ['black', 1]],
+            radial: true
+        },
+        origin: circle.position,
+        destination: circle.bounds.rightCenter
+    };
+    var dragging = false;
+    var dragStartPoint;
+    var dragVelocity = new Point(0, 0);
+    function onMouseDown(event) {
+        if (circle.contains(event.point)) {
+            dragging = true;
+            dragStartPoint = event.point;
+        }
+    }
+    function onMouseDrag(event) {
+        if (dragging) {
+            var dragEndPoint = event.point;
+            dragVelocity = dragEndPoint - dragStartPoint;
+            dragStartPoint = dragEndPoint;
+            circle.position = event.point;
+        }
+    }
+    function onMouseUp(event) {
+        dragging = false;
+    }
+    function onFrame(event) {
+        if (!dragging) {
+            circle.position += dragVelocity;
+            dragVelocity *= 0.98;
+            if (circle.bounds.left < 0 || circle.bounds.right > view.size.width) {
+                dragVelocity.x *= -0.98;
+                circle.position.x = Math.max(circle.bounds.width / 2, Math.min(view.size.width - circle.bounds.width / 2, circle.position.x));
+            }
+            if (circle.bounds.top < 0 || circle.bounds.bottom > view.size.height) {
+                dragVelocity.y *= -0.98;
+                circle.position.y = Math.max(circle.bounds.height / 2, Math.min(view.size.height - circle.bounds.height / 2, circle.position.y));
+            }
+        }
+    }
+</script>
+</body>
+</html>
